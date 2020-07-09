@@ -4,9 +4,10 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+awscli = "*"
 
 [packages]
-awscli = "*"
+googletrans = "*"
 
 [requires]
 python_version = "3.8"

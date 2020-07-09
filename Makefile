@@ -17,6 +17,12 @@ help: ## This info
 	@cat Makefile | grep -E '^[a-zA-Z\/_-]+:.*?## .*$$' | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 	@echo
 
+clean:  ## Remove untracked files except for .env file
+	git clean -fxd --exclude .env
+
 push:  ## Push update to AWS Lambda function
-	zip snorbot.zip lambda_function.py
+	rm -f snorbot.zip
+	pipenv run pip install -r <(pipenv lock -r) --target package
+	cd package; zip -r9 ../snorbot.zip .
+	zip -g snorbot.zip lambda_function.py
 	aws lambda update-function-code --function-name snorbot --zip-file fileb://snorbot.zip
