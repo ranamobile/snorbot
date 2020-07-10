@@ -1,5 +1,6 @@
 import json
 import os
+import random
 import urllib.request
 
 from googletrans import Translator
@@ -12,7 +13,14 @@ SLACK_API_HEADERS = {
     "Authorization": f'Bearer {SLACK_OAUTH_TOKEN}',
 }
 
-translator = Translator()
+PHOTO_RESPONSES = [
+    "Whoaaaaaaaa coooooooolllll! :charmander-yay:",
+    "OMG, that's amazing!! :mewtwo:",
+    "Pika pika piiiiiiii!! :wooloo:",
+    "Awwwwwwww :heart: :mankey-cute:",
+    "我喜欢冰淇淋!! :hugging_face: :heart:",
+    "我的猴子在哪里？ :mankey-cute: :snorlax_jason:",
+]
 
 
 def _format_response(status, body):
@@ -52,10 +60,17 @@ def lambda_handler(event, context):
     channel = slack_event.get("channel")
     message = slack_event.get("text", "")
 
+    # Translate message into English
+    translator = Translator()
     language = translator.detect(message)
     if language.lang in ("zh-CN", "es", "ja", "fr", "ko"):
         translation = translator.translate(message)
         response = f'[Translated from {translation.src}] <@{user}>: {translation.text}'
+        _post_message(channel, response)
+
+    # Reply to posted photos
+    if slack_event.get("subtype") == "file_share":
+        response = random.choice(PHOTO_RESPONSES)
         _post_message(channel, response)
 
     return _format_response(200, {})
