@@ -52,8 +52,8 @@ def lambda_handler(event, context):
         # Upload posted photos to Google Drive
         message_files = slack_event.get("files", [])
         for file_info in message_files:
-            download_url = fileobj.get("url_private_download")
-            filename = fileobj.get("name")
+            download_url = file_info.get("url_private_download")
+            filename = file_info.get("name")
             filepath = slackapi.get_file_data(download_url)
             if filepath:
                 channel_name = slackapi.get_channel_name(channel)

@@ -3,7 +3,6 @@ References:
 * http://googleapis.github.io/google-api-python-client
 * https://developers.google.com/drive/api/v3/about-sdk
 """
-import logging
 import os
 
 import requests
@@ -17,7 +16,7 @@ MY_EMAIL_ADDRESS = "aunkei.hong@gmail.com"
 
 
 credentials = service_account.Credentials.from_service_account_file(SERVICE_CREDS)
-service = build("drive", "v3", credentials=credentials)
+service = build("drive", "v3", credentials=credentials, cache_discovery=False)
 
 
 def get_info():
@@ -33,7 +32,6 @@ def create_directory(new_directory):
         directory_name = directory.get("name")
         directory_id = directory.get("id")
         if directory_name == new_directory:
-            LOGGER.info(f'Directory already exists: {directory_name} ({directory_id})')
             return directory_id
 
     metadata = {
@@ -42,7 +40,6 @@ def create_directory(new_directory):
     }
     directory = service.files().create(body=metadata, fields="id").execute()
     directory_id = directory.get("id")
-    LOGGER.info(f'Created directory: {new_directory} ({directory_id})')
     share_file(directory_id)
     return directory_id
 
