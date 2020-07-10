@@ -8,6 +8,7 @@ awscli = "*"
 
 [packages]
 googletrans = "*"
+requests = "*"
 
 [requires]
 python_version = "3.8"
