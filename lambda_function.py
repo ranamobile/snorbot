@@ -5,6 +5,7 @@ import random
 from googletrans import Translator
 
 import slackapi
+import gphotoapi
 
 SLACK_VERIFICATION_TOKEN = os.environ["SLACK_VERIFICATION_TOKEN"]
 PHOTO_RESPONSES = [
@@ -30,6 +31,10 @@ def lambda_handler(event, context):
     user = slack_event.get("user")
     channel = slack_event.get("channel")
     message = slack_event.get("text", "")
+    authed_users = body.get("authed_users", [])
+
+    if user in authed_users:
+        return slackapi.format_response(200, {})
 
     # Translate message into English
     translator = Translator()
@@ -43,5 +48,15 @@ def lambda_handler(event, context):
     if slack_event.get("subtype") == "file_share":
         response = random.choice(PHOTO_RESPONSES)
         slackapi.post_message(channel, response)
+
+        # Upload posted photos to Google Drive
+        message_files = slack_event.get("files", [])
+        for file_info in message_files:
+            download_url = fileobj.get("url_private_download")
+            filename = fileobj.get("name")
+            filepath = slackapi.get_file_data(download_url)
+            if filepath:
+                channel_name = slackapi.get_channel_name(channel)
+                gphotoapi.upload_image(channel_name, filename, filepath)
 
     return slackapi.format_response(200, {})

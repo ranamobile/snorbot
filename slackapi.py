@@ -1,5 +1,6 @@
 import json
 import os
+import tempfile
 
 import requests
 
@@ -17,6 +18,16 @@ def get_channel_name(channel):
     response = requests.get(SLACK_API_CONVO_INFO, headers=SLACK_API_HEADERS, params=payload)
     metadata = response.json()
     return metadata["channel"]["name"]
+
+
+
+def get_file_data(download_url):
+    response = requests.get(download_url, headers=SLACK_API_HEADERS)
+    if response.status_code == 200:
+        handler, filepath = tempfile.mkstemp()
+        os.write(handler, response.content)
+        os.close(handler)
+        return filepath
 
 
 def post_message(channel, message):
