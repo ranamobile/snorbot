@@ -24,5 +24,5 @@ push:  ## Push update to AWS Lambda function
 	rm -f snorbot.zip
 	pipenv run pip install -r <(pipenv lock -r) --target package
 	cd package; zip -r9 ../snorbot.zip .
-	zip -g snorbot.zip lambda_function.py
+	zip -g snorbot.zip lambda_function.py slackapi.py
 	aws lambda update-function-code --function-name snorbot --zip-file fileb://snorbot.zip
