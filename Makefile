@@ -20,9 +20,17 @@ help: ## This info
 clean:  ## Remove untracked files except for .env file
 	git clean -fxd --exclude .env
 
-push:  ## Push update to AWS Lambda function
-	rm -f snorbot.zip
-	pipenv run pip install -r <(pipenv lock -r) --target package
-	cd package; zip -r9 ../snorbot.zip .
-	zip -g snorbot.zip *.py *.json
-	aws lambda update-function-code --function-name snorbot --zip-file fileb://snorbot.zip
+hide:  ## Encrypt credentials/secrets to save to repo
+	openssl aes-256-cbc -a -salt -in snorslack/pikaservice_credentials.json -out snorslack/pikaservice_credentials.json.enc
+
+reveal:  ## Reveal credentials/secrets
+	if [ ! -f "snorslack/pikaservice_credentials.json" ]; then openssl aes-256-cbc -d -a -in snorslack/pikaservice_credentials.json.enc -out snorslack/pikaservice_credentials.json; fi
+
+push: reveal  ## Push update to AWS Lambda function
+	cd snorslack; pipenv run pip install --target . -r requirements.txt
+	cd snorslack; zip -r9 ../snorslack.zip *
+	pipenv run aws lambda update-function-code --function-name snorslack --zip-file fileb://snorslack.zip
+
+	cd snorbot; pipenv run pip install --target . -r requirements.txt
+	cd snorbot; zip -r9 ../snorbot.zip *
+	pipenv run aws lambda update-function-code --function-name snorbot --zip-file fileb://snorbot.zip

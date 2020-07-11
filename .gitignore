@@ -2,3 +2,5 @@
 *.zip
 package
 dist
+
+pikaservice_credentials.json
