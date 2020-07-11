@@ -27,10 +27,21 @@ reveal:  ## Reveal credentials/secrets
 	if [ ! -f "snorslack/pikaservice_credentials.json" ]; then openssl aes-256-cbc -d -a -in snorslack/pikaservice_credentials.json.enc -out snorslack/pikaservice_credentials.json; fi
 
 push: reveal  ## Push update to AWS Lambda function
-	cd snorslack; pipenv run pip install --target . -r requirements.txt
 	cd snorslack; zip -r9 ../snorslack.zip *
-	pipenv run aws lambda update-function-code --function-name snorslack --zip-file fileb://snorslack.zip
+	pipenv run aws lambda update-function-code --function-name snorslack \
+		--zip-file fileb://snorslack.zip
+	pipenv run aws lambda update-function-configuration --function-name snorslack \
+		--layers $$(pipenv run aws lambda list-layers | grep -e "LayerVersionArn" | grep snorbot | awk -F\" '{ print $$4 }')
 
-	cd snorbot; pipenv run pip install --target . -r requirements.txt
 	cd snorbot; zip -r9 ../snorbot.zip *
-	pipenv run aws lambda update-function-code --function-name snorbot --zip-file fileb://snorbot.zip
+	pipenv run aws lambda update-function-code --function-name snorbot \
+		--zip-file fileb://snorbot.zip
+	pipenv run aws lambda update-function-configuration --function-name snorbot \
+		--layers $$(pipenv run aws lambda list-layers | grep -e "LayerVersionArn" | grep snorbot | awk -F\" '{ print $$4 }')
+
+layers:  ## Push update to AWS Layers
+	pipenv run pip install -r <(pipenv lock -r) --target python/lib/python3.8/site-packages
+	zip -r9 snorbot-dependencies.zip python
+	pipenv run aws lambda publish-layer-version --layer-name snorbot-dependencies \
+		--zip-file fileb://snorbot-dependencies.zip \
+		--compatible-runtimes python3.8

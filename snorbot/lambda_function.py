@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import time
 
 import boto3
 
@@ -13,7 +14,8 @@ def format_response(status, body):
     return {
         "statusCode": status,
         "headers": {
-            "Content-type": "application/json"
+            "X-Slack-No-Retry": 1,
+            "Content-Type": "application/json"
         },
         "body": json.dumps(body),
     }
@@ -31,7 +33,17 @@ def lambda_handler(event, context):
         logger.info("verified url")
         return format_response(200, {"challenge": body.get("challenge")})
 
-    logger.info(f'passing event to destination: {event}')
-    client = boto3.client("lambda")
-    client.invoke(FunctionName="snorslack", Payload=event.get("body"))
+    slack_event = body.get("event")
+    user = slack_event.get("user")
+    authed_users = body.get("authed_users", [])
+    if user in authed_users:
+        return format_response(200, {})
+
+    event_time = int(body.get("event_time", 0)) + 10
+    current_time = time.time()
+    logger.info(f'Event Time: {event_time}, Current Time: {current_time}')
+    if event_time > current_time:
+        logger.info(f'passing event to destination: {event}')
+        client = boto3.client("lambda")
+        client.invoke(FunctionName="snorslack", Payload=event.get("body"))
     return format_response(200, {})

@@ -7,6 +7,11 @@ verify_ssl = true
 awscli = "*"
 
 [packages]
+google-api-python-client = "*"
+google-auth-httplib2 = "*"
+google-auth-oauthlib = "*"
+googletrans = "*"
+requests = "*"
 
 [requires]
 python_version = "3.8"
