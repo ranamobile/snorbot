@@ -32,7 +32,6 @@ def create_directory(new_directory):
         directory_name = directory.get("name")
         directory_id = directory.get("id")
         if directory_name == new_directory:
-            share_file(directory_id)
             return directory_id
 
     metadata = {
