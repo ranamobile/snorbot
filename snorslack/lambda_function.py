@@ -46,6 +46,7 @@ def lambda_handler(event, context):
     if slack_event.get("subtype") == "file_share":
         response = random.choice(PHOTO_RESPONSES)
         slackapi.post_message(channel, response)
+        logger.info(f'Response to file share: [{response}]')
 
         # Upload posted photos to Google Drive
         message_files = slack_event.get("files", [])
@@ -55,6 +56,7 @@ def lambda_handler(event, context):
             filepath = slackapi.get_file_data(download_url)
             if filepath:
                 channel_name = slackapi.get_channel_name(channel)
-                gphotoapi.upload_image(channel_name, filename, filepath)
+                image_id = gphotoapi.upload_image(channel_name, filename, filepath)
+                logger.info(f'Uploaded [{filepath}] to [{channel_name}::{filename}]: [{image_id}]')
 
     return slackapi.format_response(200, {})

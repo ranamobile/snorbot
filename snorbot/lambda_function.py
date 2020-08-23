@@ -10,15 +10,18 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
-def format_response(status, body):
-    return {
+def format_response(status, body=None):
+    if not body:
+        body = {}
+    response = {
         "statusCode": status,
         "headers": {
             "X-Slack-No-Retry": 1,
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         },
         "body": json.dumps(body),
     }
+    return response
 
 
 def lambda_handler(event, context):
@@ -37,7 +40,7 @@ def lambda_handler(event, context):
     user = slack_event.get("user")
     authed_users = body.get("authed_users", [])
     if user in authed_users:
-        return format_response(200, {})
+        return format_response(200, {"challenge": body.get("challenge")})
 
     event_time = int(body.get("event_time", 0)) + 10
     current_time = time.time()
@@ -45,5 +48,5 @@ def lambda_handler(event, context):
     if event_time > current_time:
         logger.info(f'passing event to destination: {event}')
         client = boto3.client("lambda")
-        client.invoke(FunctionName="snorslack", Payload=event.get("body"))
-    return format_response(200, {})
+        client.invoke(FunctionName="snorslack", InvocationType="Event", Payload=event.get("body"))
+    return format_response(200, {"challenge": body.get("challenge")})
