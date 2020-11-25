@@ -17,14 +17,19 @@ help: ## This info
 	@cat Makefile | grep -E '^[a-zA-Z\/_-]+:.*?## .*$$' | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 	@echo
 
+install:  ## Install virtual environment
+	pipenv install --dev
+
 clean:  ## Remove untracked files except for .env file
 	git clean -fxd --exclude .env
 
 hide:  ## Encrypt credentials/secrets to save to repo
-	openssl aes-256-cbc -a -salt -in snorslack/pikaservice_credentials.json -out snorslack/pikaservice_credentials.json.enc
+	openssl aes-256-cbc -a -salt -pbkdf2 -in snorslack/pikaservice_credentials.json -out snorslack/pikaservice_credentials.json.enc
 
 reveal:  ## Reveal credentials/secrets
-	if [ ! -f "snorslack/pikaservice_credentials.json" ]; then openssl aes-256-cbc -d -a -in snorslack/pikaservice_credentials.json.enc -out snorslack/pikaservice_credentials.json; fi
+	if [ ! -f "snorslack/pikaservice_credentials.json" ]; then \
+		openssl aes-256-cbc -d -a -pbkdf2 -in snorslack/pikaservice_credentials.json.enc -out snorslack/pikaservice_credentials.json; \
+	fi
 
 push: reveal  ## Push update to AWS Lambda function
 	cd snorslack; zip -r9 ../snorslack.zip *

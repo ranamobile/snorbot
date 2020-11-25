@@ -35,12 +35,15 @@ def lambda_handler(event, context):
         return slackapi.format_response(200, {})
 
     # Translate message into English
-    translator = Translator()
-    language = translator.detect(message)
-    if language.lang in ("zh-CN", "es", "ja", "fr", "ko"):
-        translation = translator.translate(message)
-        response = f'[Translated from {translation.src}] <@{user}>: {translation.text}'
-        slackapi.post_message(channel, response)
+    try:
+        translator = Translator()
+        language = translator.detect(message)
+        if language.lang in ("zh-CN", "es", "ja", "fr", "ko"):
+            translation = translator.translate(message)
+            response = f'[Translated from {translation.src}] <@{user}>: {translation.text}'
+            slackapi.post_message(channel, response)
+    except Exception as error:
+        logger.error(f'Failed to translate message: [{error}]')
 
     # Reply to posted photos
     if slack_event.get("subtype") == "file_share":
