@@ -3,6 +3,7 @@ References:
 * http://googleapis.github.io/google-api-python-client
 * https://developers.google.com/drive/api/v3/about-sdk
 """
+import json
 import os
 
 import requests
@@ -10,12 +11,11 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
-BOT_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
-SERVICE_CREDS = os.path.join(BOT_DIRECTORY, "pikaservice_credentials.json")
+
+GOOGLE_DRIVE_CONFIG = json.loads(os.environ["GOOGLE_DRIVE_CONFIG"])
 MY_EMAIL_ADDRESS = "aunkei.hong@gmail.com"
 
-
-credentials = service_account.Credentials.from_service_account_file(SERVICE_CREDS)
+credentials = service_account.Credentials.from_service_account_info(GOOGLE_DRIVE_CONFIG)
 service = build("drive", "v3", credentials=credentials, cache_discovery=False)
 
 
