@@ -21,6 +21,8 @@ clean: ## Remove untracked files except for .env file
 	git clean -fxd --exclude .env
 
 push: ## Push update to AWS Lambda function
+	rm *.zip
+
 	cd snorslack; zip -r9 ../snorslack.zip *
 	pipenv run aws lambda update-function-code --function-name snorslack \
 		--zip-file fileb://snorslack.zip
